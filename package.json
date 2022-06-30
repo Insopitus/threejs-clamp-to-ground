@@ -1,0 +1,22 @@
+{
+  "name": "threejs-clamp-to-ground",
+  "version": "1.0.0",
+  "description": "A three js implementation of cesium.js' clampToGround options.",
+  "main": "index.html",
+  "scripts": {
+    "dev":"vite"
+  },
+  "keywords": [
+    "shadow-volume",
+    "stencil"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "three": "^0.142.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.141.0",
+    "vite": "^2.9.13"
+  }
+}
