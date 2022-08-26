@@ -22,7 +22,6 @@ const controls = new MapControls(camera, renderer.domElement)
 
 scene.add(ambientLight, directionalLight,)
 renderer.render(scene, camera)
-const mirrorCamera = new PerspectiveCamera(45, width / height, 1, 1000)
 
 function animate(deltaTime: number) {
     requestAnimationFrame(animate)
