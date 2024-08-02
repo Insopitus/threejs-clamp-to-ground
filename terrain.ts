@@ -8,7 +8,13 @@ import { ImprovedNoise } from 'three/examples/jsm/math/ImprovedNoise.js';
 
 const worldWidth = 256, worldDepth = 256;
 
+let seed = Math.PI / 4;
+function random () {
 
+    const x = Math.sin(seed++) * 10000;
+    return x - Math.floor(x);
+
+};
 
 const data = generateHeight(worldWidth, worldDepth);
 
@@ -34,16 +40,10 @@ export const terrain = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ ma
 
 function generateHeight(width:number, height:number) {
 
-    let seed = Math.PI / 4;
-    window.Math.random = function () {
-
-        const x = Math.sin(seed++) * 10000;
-        return x - Math.floor(x);
-
-    };
+  
 
     const size = width * height, data = new Uint8Array(size);
-    const perlin = new ImprovedNoise(), z = Math.random() * 100;
+    const perlin = new ImprovedNoise(), z = random() * 100;
 
     let quality = 1;
 
@@ -66,7 +66,7 @@ function generateHeight(width:number, height:number) {
 
 function generateTexture(data:Uint8Array, width:number, height:number) {
 
-    let context, image, imageData, shade;
+    let context:CanvasRenderingContext2D, image:ImageData, imageData:Uint8ClampedArray, shade:number;
 
     const vector3 = new THREE.Vector3(0, 0, 0);
 
