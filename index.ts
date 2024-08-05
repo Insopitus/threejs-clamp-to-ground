@@ -44,12 +44,10 @@ import THREE, {
 	SubtractiveBlending,
 	Vector2,
 	WebGLRenderer,
-	ZeroStencilOp,
-	
+	ZeroStencilOp
 } from 'three'
 import { MapControls } from 'three/examples/jsm/controls/MapControls'
 import { terrain } from './terrain'
-import { ShadowVolumeMesh } from './ShadowVolume'
 
 // #region three-js-setup
 const scene = new Scene()
@@ -99,186 +97,72 @@ const shape0 = new Shape([
 ])
 const shape1 = new Shape([new Vector2(500, 500), new Vector2(1500, 500), new Vector2(500, -500)])
 const shape2 = new Shape([new Vector2(-500, 0), new Vector2(1500, 0), new Vector2(500, -500)])
-const TEST = false
-if (TEST) {
-	const d_light = new DirectionalLight(0xff0000)
-	d_light.position.set(1000, 10000, 0)
-	d_light.target.position.set(0, 0, 0)
-	d_light.castShadow = true
-	// scene.add(d_light)
-	terrain.receiveShadow = true
-	const geometry0 = new ExtrudeGeometry(shape0, {
-		depth: 1500,
-		steps: 1,
-		bevelEnabled: false
-	})
-	geometry0.rotateX(-Math.PI / 2)
-	// geometry0.translate(0,0,1000)
-	// const mesh = new Mesh(geometry0, new MeshStandardMaterial())
-	// mesh.position.y = 1500
-	const volume = new ShadowVolumeMesh(shape0, renderer, 10, 'red')
-	// const volume1 = new ShadowVolumeMesh(shape1,renderer)
-	const volume2 = new ShadowVolumeMesh(shape2, renderer, 20, 'blue')
-	// volume.setShadowDistance(2000)
-	// volume.setLight(d_light)
-	// volume.setShadowBias(0.1)
-	// volume.visible = true
-	scene.add(volume /** */, volume2)
-} else {
-	scene.add(
-		createGroundMesh(shape0, 'red', 4, true) /**凹形 */,
-		 createGroundMesh(shape1, 'yellow', 8, true)
-		)
-}
+
+scene.add(
+	createGroundMesh(shape0, 'red', 4, true),
+
+	createGroundMesh(shape1, 'yellow', 7, true),
+
+	createGroundMesh(shape2, 'blue', 10, true)
+)
+
 function createGroundMesh(shape: Shape, color: ColorRepresentation, order: number, transparent: boolean): Group {
 	const group = new Group()
-	// create the shadow volume geometry
+	// create the shadow volume geometry as a extrude geometry
 	const extrudeGeometry = new ExtrudeGeometry(shape, {
 		steps: 1,
-		depth: 1100,
+		depth: 1500, // it must be big enough to cover the depth range of the terrain
 		bevelEnabled: false
 	})
 	extrudeGeometry.rotateX(-Math.PI / 2)
 
-	const helper_geometry = extrudeGeometry.clone()
-	const helper_mesh = new Mesh(helper_geometry, new MeshBasicMaterial({ wireframe: true }))
-	scene.add(helper_mesh)
+	// debug wireframe
+	// const helperGeometry = extrudeGeometry.clone()
+	// const helperMesh = new Mesh(helperGeometry, new MeshBasicMaterial({ wireframe: true }))
+	// group.add(helperMesh) 
 
-	// // a triangle shape
-	// const shape2 = new Shape([new Vector2(500, 0), new Vector2(800, 0), new Vector2(800, 800), new Vector2(-800, 800), new Vector2(-800, 0), new Vector2(-600, 0), new Vector2(-600, 400)])
-
-	// // create the shadow volume geometry
-	// const extrude_geometry2 = new ExtrudeBufferGeometry(shape, {
-	// 	steps: 1,
-	// 	depth: 1500
-	// })
-	// extrude_geometry2.rotateX(-Math.PI / 2)
-	const stencilFunction = AlwaysStencilFunc
 	/** render the shadow volume the first time for the front side to write to the stencil buffer  */
 	const frontMaterial = new MeshBasicMaterial({
 		side: FrontSide,
 		depthWrite: false,
 		colorWrite: false, // don't write to color buffer nor depth buffer
 		stencilWrite: true,
-		// depthFunc: GreaterEqualDepth,
 		stencilFunc: AlwaysStencilFunc,
 		stencilFail: KeepStencilOp,
-		stencilZFail: DecrementWrapStencilOp,
-		stencilZPass: KeepStencilOp, // increment stencil buffer
+		stencilZFail: DecrementWrapStencilOp, // decrease stencil value if depth test failed
+		stencilZPass: KeepStencilOp, 
 		transparent
-		// stencilWriteMask:0,
-		// stencilFuncMask:0,
-		// stencilRef:0x80,
 	})
 
 	/** render the shadow volume the 2nd time for the back side to write to the stencil buffer */
 	const backMaterial = new MeshBasicMaterial({
 		side: BackSide,
 		depthWrite: false,
-		// depthFunc: GreaterEqualDepth,
 		colorWrite: false,
 		stencilWrite: true,
 		stencilFunc: AlwaysStencilFunc,
 		stencilFail: KeepStencilOp,
-		stencilZFail: IncrementWrapStencilOp, // decrement stencil buffer if depth test fails
+		stencilZFail: IncrementWrapStencilOp, // increment stencil value if depth test fails
 		stencilZPass: KeepStencilOp, // do nothing if depth test passes
 		transparent
-		// stencilWriteMask:0,
-		// stencilFuncMask:0,
-		// stencilRef:0x80,
-	})
-	const frontMaterial1 = frontMaterial.clone()
-	frontMaterial1.depthTest = false
-	frontMaterial1.stencilZFail = DecrementWrapStencilOp
-	const backMaterial1 = backMaterial.clone()
-	backMaterial1.depthTest = false
-	backMaterial1.stencilZFail = IncrementWrapStencilOp
-
-	// for test purpose
-	const setMaterial = new MeshBasicMaterial({
-		side:BackSide,
-		stencilWrite: true, //
-		colorWrite:false,
-		stencilWriteMask: 0xff,
-		stencilRef: 1,
-		depthWrite: false,
-		stencilFunc: AlwaysStencilFunc, //
-		stencilFail: KeepStencilOp,
-		stencilZFail: ReplaceStencilOp,
-		stencilZPass: KeepStencilOp,
-		// depthTest: false,
-		// blending: NormalBlending,
-		// stencilFuncMask:0x0f,
-		transparent,
 	})
 
-	/** render the actual shape on the terrain, writes to color buffer */
-	const tintMaterial = new ShaderMaterial({
-		side: FrontSide,
-		stencilWrite: true, // enable stencil test for this material even if you don't write to it
-		stencilWriteMask: 0,
+	/** render the actual shape on the terrain, it writes the color buffer */
+	const tintMaterial = new MeshBasicMaterial({
+		side: DoubleSide,
+		stencilWrite: true,
 		stencilRef: 0,
 		depthWrite: false,
 		stencilFunc: NotEqualStencilFunc, // draw if stencil != 0
 		stencilFail: ZeroStencilOp,
 		stencilZFail: ZeroStencilOp,
-		stencilZPass: ZeroStencilOp,
+		stencilZPass: ZeroStencilOp, //reset stencil value to zero so it would not effect later shadow volumes
 		depthTest: false,
-		blending: CustomBlending,
-		blendEquationAlpha:SrcAlphaFactor,
-		blendDst:DstAlphaFactor,
-		// blendSrcAlpha:0.2,
-		blendEquation:AddEquation,
-		// stencilFuncMask:0x0f,
 		transparent,
-		// opacity: 0.8,
-		uniforms: {
-			color: {
-				value: new Color(color)
-			}
-		},
-		fragmentShader: `
-			uniform vec3 color;
-			void main(){
-				gl_FragColor = vec4(color,0.5);
-			}
-		`
-
-		// blending: NormalBlending,
-		// blendDstAlpha: OneFactor
+		opacity: 0.5,
+		color
 	})
-	// reset all the stencil pixels changed by this shadow volume
-	const resetMaterial = new MeshBasicMaterial({
-		side: DoubleSide,
-		stencilWrite: true,
-		stencilWriteMask: 0xff,
-		stencilRef: 0,
-		depthWrite: false,
-		depthTest: true,
-		stencilFunc: NeverStencilFunc,
-		stencilFail: ReplaceStencilOp,
-		stencilZFail: ReplaceStencilOp,
-		stencilZPass: ReplaceStencilOp,
-		// depthTest: false,
-		// blending: NoBlending,
-		// stencilFuncMask:0x0f,
-		transparent,
-		// opacity: 0.8,
-		// uniforms: {
-		// 	color: {
-		// 		value: new Color(color)
-		// 	}
-		// },
-		// fragmentShader: `
-		// 	uniform vec3 color;
-		// 	void main(){
-		// 		gl_FragColor = vec4(color,1.);
-		// 	}
-		// `
 
-		// blending: NormalBlending,
-		// blendDstAlpha: OneFactor
-	})
 
 	const front = new Mesh(extrudeGeometry, frontMaterial)
 	front.renderOrder = order // render after the terrain
@@ -286,30 +170,14 @@ function createGroundMesh(shape: Shape, color: ColorRepresentation, order: numbe
 	const back = new Mesh(extrudeGeometry, backMaterial)
 	back.renderOrder = order
 
-	const front1 = new Mesh(extrudeGeometry, frontMaterial1)
-	front1.renderOrder = order
-	const back1 = new Mesh(extrudeGeometry, backMaterial1)
-	back1.renderOrder = order
-
-	const set = new Mesh(extrudeGeometry,setMaterial)
-
 	const tint = new Mesh(extrudeGeometry, tintMaterial)
-	// extrude3.onAfterRender = (renderer)=>{
-	// 	// renderer.clearStencil()
-	// 	// renderer.state.buffers.stencil.reset()
-	// }
-	const reset = new Mesh(extrudeGeometry, resetMaterial)
-	reset.renderOrder = order + 2
-	tint.renderOrder = order + 1 // render this one last
+	
+	tint.renderOrder = order + 1 // render this one after the two stencil-write renderings
 	group.add(
 		front,
-		back /** */,
-		// set,
-		tint,
-		reset,
-		// front1, back1
+		back,
+		tint
 	)
-	console.log(tint.material)
 	return group
 }
 
