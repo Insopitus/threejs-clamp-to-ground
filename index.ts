@@ -98,12 +98,13 @@ const shape0 = new Shape([
 const shape1 = new Shape([new Vector2(500, 500), new Vector2(1500, 500), new Vector2(500, -500)])
 const shape2 = new Shape([new Vector2(-500, 0), new Vector2(1500, 0), new Vector2(500, -500)])
 
+let order = 1
 scene.add(
-	createGroundMesh(shape0, 'red', 4, true),
+	createGroundMesh(shape0, 'red', order, true),
 
-	createGroundMesh(shape1, 'yellow', 7, true),
+	createGroundMesh(shape1, 'green', order+=2, true),
 
-	createGroundMesh(shape2, 'blue', 10, true)
+	createGroundMesh(shape2, 'blue', order+=2, true)
 )
 
 function createGroundMesh(shape: Shape, color: ColorRepresentation, order: number, transparent: boolean): Group {
@@ -173,6 +174,7 @@ function createGroundMesh(shape: Shape, color: ColorRepresentation, order: numbe
 	const tint = new Mesh(extrudeGeometry, tintMaterial)
 	
 	tint.renderOrder = order + 1 // render this one after the two stencil-write renderings
+	// different shadow volumes should be rendered separatly
 	group.add(
 		front,
 		back,
