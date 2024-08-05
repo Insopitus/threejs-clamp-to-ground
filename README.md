@@ -12,6 +12,3 @@ npm run dev
 ## Showcase
 ![](./assets/clamp-to-ground.png)
 
-## Known Issues
-1. Rendering concave polygons doesn't work properly
-2. Wrong behavior when polygons intersects or when their shadow volume overlaps on the screen
