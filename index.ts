@@ -84,7 +84,7 @@ scene.add(terrain)
 terrain.renderOrder = 1
 camera.position.set(1000, 5000, 0)
 
-// a triangle shape
+
 const shape0 = new Shape([
 	new Vector2(1000, 0),
 	new Vector2(1000, 1000),
